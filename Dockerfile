@@ -1,15 +1,18 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
+# Instalar Bun
+RUN npm install -g bun
+
 # Copiamos los manifiestos de dependencias primero para aprovechar la caché de Docker
 COPY package*.json ./
 
 # Instalamos solo dependencias de producción cuando sea posible
 RUN if [ -f package-lock.json ]; then \
-			npm ci --only=production --no-audit --no-fund; \
-		else \
-			npm install --only=production --no-audit --no-fund; \
-		fi
+            npm ci --only=production --no-audit --no-fund; \
+        else \
+            npm install --only=production --no-audit --no-fund; \
+        fi
 
 # Copiamos el resto del proyecto
 COPY . .
@@ -18,7 +21,7 @@ COPY . .
 ENV NODE_ENV=production
 
 # Puerto que expone la app
-EXPOSE 443
+EXPOSE 3000
 
 # Comando por defecto
-CMD ["node", "index.js"]
+CMD ["bun", "src/index.ts"]
