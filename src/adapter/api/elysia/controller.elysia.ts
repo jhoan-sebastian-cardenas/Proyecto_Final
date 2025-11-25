@@ -31,6 +31,7 @@ export class Controller {
                 "/medicaldevices/checkin",
                 ({ body }) => this.checkinMedicalDevice(body),
                 {
+                    type: "multipart/form-data",
                     body: MED_DEVICE_REQUEST_SCHEMA
                 }
             )
