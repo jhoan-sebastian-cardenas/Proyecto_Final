@@ -6,7 +6,7 @@ on:
       PORT:
         description: 'The port of your application'
         required: true
-        default: "443"
+        default: "3000"
   push:
     branches: [ main, develop ]
   pull_request:
@@ -33,15 +33,29 @@ jobs:
       - name: Run container
         run: |
           docker run -d \
-            -p ${{ github.event.inputs.PORT || '443' }}:${{ github.event.inputs.PORT || '443' }} \
+            -p ${{ github.event.inputs.PORT || '3000' }}:3000 \
             --name proyecto-final-api proyecto-final-api:latest
-          sleep 10
+          sleep 15
       
       # Verificar que el contenedor está corriendo
       - name: Check container status
         run: |
           docker ps
-          docker logs proyecto-final-api
+          docker logs proyecto-final-api || true
+      
+      # Verificar conectividad
+      - name: Wait for service to be ready
+        run: |
+          timeout=30
+          while ! curl -s http://localhost:${{ github.event.inputs.PORT || '3000' }}/api/computers > /dev/null 2>&1; do
+            sleep 1
+            timeout=$((timeout - 1))
+            if [ $timeout -eq 0 ]; then
+              echo "Service did not start in time"
+              exit 1
+            fi
+          done
+          echo "Service is ready"
       
       # Instalar hurl
       - name: Setup hurl (API testing tool)
@@ -50,4 +64,4 @@ jobs:
       # Ejecutar pruebas de API
       - name: Test API
         run: |
-          hurl --variable host=https://localhost:${{ github.event.inputs.PORT || '443' }} --error-format long --test session.hurl
+          hurl --variable host=http://localhost:${{ github.event.inputs.PORT || '3000' }} --error-format long --test session.hurl
