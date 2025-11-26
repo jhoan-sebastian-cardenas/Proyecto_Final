@@ -15,39 +15,63 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      # Descargar el código del repositorio
+      # Descargar código
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      # Instalar docker
-      - name: Setup docker
+
+      # Instalar Docker
+      - name: Setup Docker
         uses: docker/setup-buildx-action@v3
-      
-      # Construir imagen de docker
-      - name: Build docker image
+
+      # 🔥 Eliminar contenedores previos si existen
+      - name: Cleanup old containers
+        run: |
+          docker rm -f proyecto-final-api || true
+
+      # Construir imagen
+      - name: Build Docker image
         run: |
           docker build -t proyecto-final-api:latest .
-      
-      # Levantar contenedor
+
+      # Ejecutar contenedor
       - name: Run container
         run: |
           docker run -d \
             -p ${{ github.event.inputs.PORT || '3000' }}:3000 \
-            --name proyecto-final-api proyecto-final-api:latest
-          sleep 15
-      
-      # Verificar que el contenedor está corriendo
+            --name proyecto-final-api \
+            proyecto-final-api:latest
+
+          # Esperar a que levante correctamente
+          echo "Waiting for container to start..."
+          for i in {1..10}; do
+            curl -s http://localhost:${{ github.event.inputs.PORT || '3000' }}/openapi && break
+            echo "Retrying in 2s..."
+            sleep 2
+          done
+
+      # Ver contenedores
       - name: Check container status
         run: |
           docker ps
           docker logs proyecto-final-api || true
-      
-      # Instalar hurl
+
+      # Hurl
       - name: Setup hurl (API testing tool)
         uses: gacts/install-hurl@v1
-      
-      # Ejecutar pruebas de API
+
+      # Ejecutar Tests con Hurl
       - name: Test API
         run: |
-          hurl --variable host=http://localhost:${{ github.event.inputs.PORT || '3000' }} --error-format long --test session.hurl
+          hurl \
+            --variable host=http://localhost:${{ github.event.inputs.PORT || '3000' }} \
+            --error-format long \
+            --test session.hurl
+
+      # 🔥 Limpiar recursos
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f proyecto-final-api || true
+          docker image rm proyecto-final-api:latest || true
