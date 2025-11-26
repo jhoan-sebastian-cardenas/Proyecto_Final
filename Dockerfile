@@ -21,7 +21,7 @@ COPY . .
 ENV NODE_ENV=production
 
 # Puerto que expone la app
-EXPOSE 3000
+EXPOSE $PORT
 
 # Comando por defecto
 CMD ["bun", "src/index.ts"]

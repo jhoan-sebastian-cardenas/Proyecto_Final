@@ -4,13 +4,19 @@ import { CRITERIA_QUERY_PARAMS_SCHEMA, CriteriaHelper, CriteriaQueryParams } fro
 import { COMPUTER_REQUEST_SCHEMA, ComputerRequest, MED_DEVICE_REQUEST_SCHEMA, MedDeviceRequest } from "@/core/dto";
 import z from "zod";
 import { Computer, EnteredDevice, FrequentComputer, MedicalDevice } from "@/core/domain";
+import { LoggingService } from "@/core/service/logging.service";
 
 export class Controller {
+    private loggingService: LoggingService;
+
     constructor(
         private computerService: ComputerService,
         private deviceService: DeviceService,
         private medicalDeviceService: MedicalDeviceService
-    ) {}
+    ) {
+        this.loggingService = LoggingService.getInstance();
+        console.log('Controller initialized with logging service');
+    }
 
     public routes() {
         return new Elysia({
@@ -21,7 +27,21 @@ export class Controller {
             })
             .post(
                 "/computers/checkin",
-                ({ body }) => this.checkinComputer(body),
+                async ({ body, request }) => {
+                    console.log('Handling /computers/checkin request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.checkinComputer(body);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/computers/checkin' });
+                        throw error;
+                    }
+                },
                 {
                     type: "multipart/form-data",
                     body: COMPUTER_REQUEST_SCHEMA
@@ -29,7 +49,21 @@ export class Controller {
             )
             .post(
                 "/medicaldevices/checkin",
-                ({ body }) => this.checkinMedicalDevice(body),
+                async ({ body, request }) => {
+                    console.log('Handling /medicaldevices/checkin request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.checkinMedicalDevice(body);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/medicaldevices/checkin' });
+                        throw error;
+                    }
+                },
                 {
                     type: "multipart/form-data",
                     body: MED_DEVICE_REQUEST_SCHEMA
@@ -37,7 +71,21 @@ export class Controller {
             )
             .post(
                 "/computers/frequent",
-                ({ body }) => this.registerFrequentComputer(body),
+                async ({ body, request }) => {
+                    console.log('Handling /computers/frequent request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.registerFrequentComputer(body);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/computers/frequent' });
+                        throw error;
+                    }
+                },
                 {
                     type: "multipart/form-data",
                     body: COMPUTER_REQUEST_SCHEMA
@@ -45,19 +93,75 @@ export class Controller {
             )
             .get(
                 "/computers",
-                ({ query }) => this.getComputers(query)
+                async ({ query, request }) => {
+                    console.log('Handling /computers GET request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.getComputers(query);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/computers' });
+                        throw error;
+                    }
+                }
             )
             .get(
                 "/medicaldevices",
-                ({ query }) =>  this.getMedicalDevices(query)
+                async ({ query, request }) => {
+                    console.log('Handling /medicaldevices GET request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.getMedicalDevices(query);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/medicaldevices' });
+                        throw error;
+                    }
+                }
             )
             .get(
                 "/computers/frequent",
-                ({ query }) => this.getFrequentComputers(query)
+                async ({ query, request }) => {
+                    console.log('Handling /computers/frequent GET request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.getFrequentComputers(query);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/computers/frequent' });
+                        throw error;
+                    }
+                }
             )
             .get(
                 "/devices/entered",
-                ({ query }) => this.getEnteredDevices(query)
+                async ({ query, request }) => {
+                    console.log('Handling /devices/entered GET request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.getEnteredDevices(query);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/devices/entered' });
+                        throw error;
+                    }
+                }
             )
             .guard({
                 params: z.object({
@@ -66,11 +170,39 @@ export class Controller {
             })
             .patch(
                 "/computers/frequent/checkin/:id",
-                ({ params: { id }}) => this.checkinFrequentComputer(id)
+                async ({ params: { id }, request }) => {
+                    console.log('Handling /computers/frequent/checkin/:id PATCH request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.checkinFrequentComputer(id);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/computers/frequent/checkin/:id', id });
+                        throw error;
+                    }
+                }
             )
             .patch(
                 "/devices/checkout/:id",
-                ({ params: { id }}) => this.checkoutDevice(id)
+                async ({ params: { id }, request }) => {
+                    console.log('Handling /devices/checkout/:id PATCH request');
+                    const startTime = Date.now();
+                    try {
+                        const result = await this.checkoutDevice(id);
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 200, duration);
+                        return result;
+                    } catch (error) {
+                        const duration = Date.now() - startTime;
+                        await this.loggingService.logRequest(request.method, request.url, 500, duration);
+                        await this.loggingService.logError(error as Error, { endpoint: '/devices/checkout/:id', id });
+                        throw error;
+                    }
+                }
             )
     }
 

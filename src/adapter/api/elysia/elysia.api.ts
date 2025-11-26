@@ -19,14 +19,20 @@ export class ElysiaApiAdapter {
             medicalDeviceService
         )
 
-        this.app = new Elysia()
-            .use(openapi({}))
-            .use(this.controller.routes())
+        // Create the main app instance
+        const app = new Elysia();
+        
+        // Apply OpenAPI plugin
+        const withOpenApi = app.use(openapi({}));
+        
+        // Register controller routes and use double assertion to avoid TS errors
+        this.app = withOpenApi.use(this.controller.routes()) as unknown as Elysia;
     }
 
     async run() {
-        this.app.listen(3000)
+        const port = process.env.PORT || 3000;
+        this.app.listen(port);
         
-        console.log("El servidor esta corriendo en el puerto 3000")
+        console.log(`El servidor esta corriendo en el puerto http://localhost:${port}/openapi`);
     }
 }
