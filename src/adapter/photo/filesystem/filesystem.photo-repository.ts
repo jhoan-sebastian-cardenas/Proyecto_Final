@@ -10,18 +10,29 @@ const BASE_PATH = "./public";
 const BASE_URL = `http://localhost:${MEDIA_PORT}/photo/`;
 
 export class FileSystemPhotoRepository implements DevicePhotoRepository {
-  public server: Server<any>
+  public server: Server<any> | null = null;
 
   constructor() {
-    this.server = Bun.serve({
-      port: MEDIA_PORT,
-      routes: {
-        "/photo/:filename": req => new Response(Bun.file(`${BASE_PATH}/${req.params.filename}`))
-      },
-      error() {
-        return new Response(null, { status: 404 })
+    // Solo crear el servidor si estamos en modo desarrollo
+    if (isDevelopment) {
+      try {
+        this.server = Bun.serve({
+          port: MEDIA_PORT,
+          routes: {
+            "/photo/:filename": req => new Response(Bun.file(`${BASE_PATH}/${req.params.filename}`))
+          },
+          error() {
+            return new Response(null, { status: 404 })
+          }
+        });
+      } catch (error: unknown) {
+        console.warn("No se pudo iniciar el servidor de fotos:", (error as Error).message);
+        this.server = null;
       }
-    });
+    } else {
+      console.log("Servidor de fotos desactivado en entorno de producción");
+      this.server = null;
+    }
   }
 
   async savePhoto(file: File, id: DeviceId): Promise<URL> {
@@ -34,7 +45,11 @@ export class FileSystemPhotoRepository implements DevicePhotoRepository {
 
     await Bun.write(path, file)
 
-    return new URL(filename, BASE_URL)
+    // En producción, la URL base debería venir de una variable de entorno
+    const productionBaseUrl = process.env.PHOTO_BASE_URL || `http://localhost:${MEDIA_PORT}/photo/`;
+    const baseUrl = isDevelopment ? BASE_URL : productionBaseUrl;
+    
+    return new URL(filename, baseUrl)
   }
 
   getFileExtension(file: File): string | undefined {
