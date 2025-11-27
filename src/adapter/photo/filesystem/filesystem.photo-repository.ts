@@ -2,12 +2,15 @@ import { DeviceId } from "@/core/domain";
 import { DevicePhotoRepository } from "@/core/repository";
 import { Server } from "bun";
 
-const MEDIA_PORT = Bun.env.MEDIA_PORT || 8080
-const BASE_PATH = "./public"
-const BASE_URL = `http://localhost:${MEDIA_PORT}/photo/`
+// Usar puerto dinámico para el servidor de archivos de fotos
+const isWatchMode = process.argv.includes('--watch');
+const isDevelopment = isWatchMode || !process.env.NODE_ENV || process.env.NODE_ENV !== 'production';
+const MEDIA_PORT = Bun.env.MEDIA_PORT || (isDevelopment ? 8081 : 8443);
+const BASE_PATH = "./public";
+const BASE_URL = `http://localhost:${MEDIA_PORT}/photo/`;
 
 export class FileSystemPhotoRepository implements DevicePhotoRepository {
-  public server: Server
+  public server: Server<any>
 
   constructor() {
     this.server = Bun.serve({

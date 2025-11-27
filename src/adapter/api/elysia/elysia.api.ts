@@ -30,8 +30,13 @@ export class ElysiaApiAdapter {
     }
 
     async run() {
-        const port = process.env.PORT || 3000;
-        this.app.listen(port);
+        // Determinar si estamos en modo desarrollo
+        // Verificar si se está ejecutando con --watch (modo desarrollo)
+        const isWatchMode = process.argv.includes('--watch');
+        const isDevelopment = isWatchMode || !process.env.NODE_ENV || process.env.NODE_ENV !== 'production';
+        const port = process.env.PORT || (isDevelopment ? 3000 : 443);
+        // Escuchar en todas las interfaces para compatibilidad con Azure
+        this.app.listen({ port, hostname: '0.0.0.0' });
         
         console.log(`El servidor esta corriendo en el puerto http://localhost:${port}/openapi`);
     }

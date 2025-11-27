@@ -19,6 +19,7 @@ COPY . .
 
 # Variable de entorno para producción
 ENV NODE_ENV=production
+ENV PORT=443
 
 # Puerto que expone la app
 EXPOSE $PORT
